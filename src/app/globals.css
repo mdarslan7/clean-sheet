@@ -24,3 +24,33 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Validation styles for DataGrid cells */
+.validation-error {
+  background-color: rgba(244, 67, 54, 0.1) !important;
+  border: 1px solid rgba(244, 67, 54, 0.3) !important;
+}
+
+.validation-error:hover {
+  background-color: rgba(244, 67, 54, 0.2) !important;
+}
+
+.validation-warning {
+  background-color: rgba(255, 152, 0, 0.1) !important;
+  border: 1px solid rgba(255, 152, 0, 0.3) !important;
+}
+
+.validation-warning:hover {
+  background-color: rgba(255, 152, 0, 0.2) !important;
+}
+
+/* DataGrid cell focus styles for validation */
+.MuiDataGrid-cell.validation-error:focus-within {
+  background-color: rgba(244, 67, 54, 0.15) !important;
+  border: 2px solid rgba(244, 67, 54, 0.5) !important;
+}
+
+.MuiDataGrid-cell.validation-warning:focus-within {
+  background-color: rgba(255, 152, 0, 0.15) !important;
+  border: 2px solid rgba(255, 152, 0, 0.5) !important;
+}
