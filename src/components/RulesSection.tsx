@@ -44,7 +44,8 @@ import {
   Business,
   Timeline,
   Group,
-  Assignment
+  Assignment,
+  Lightbulb
 } from '@mui/icons-material';
 import { 
   BusinessRule, 
@@ -63,7 +64,9 @@ interface RulesSectionProps {
   clients: Client[];
   workers: Worker[];
   tasks: Task[];
+  validationRules: RulesConfig['validationRules'];
   onRulesChange?: (rules: RulesConfig) => void;
+  aiValidationDescriptions?: Record<string, string>;
 }
 
 const defaultPrioritization: PrioritizationConfig = {
@@ -76,7 +79,7 @@ const defaultPrioritization: PrioritizationConfig = {
   workloadBalance: 50
 };
 
-export default function RulesSection({ clients, workers, tasks, onRulesChange }: RulesSectionProps) {
+export default function RulesSection({ clients, workers, tasks, validationRules, onRulesChange, aiValidationDescriptions = {} }: RulesSectionProps) {
   // Debug logging to see what data we're receiving
   console.log('RulesSection received data:', {
     clientsCount: clients.length,
@@ -89,27 +92,6 @@ export default function RulesSection({ clients, workers, tasks, onRulesChange }:
 
   const [businessRules, setBusinessRules] = useState<BusinessRule[]>([]);
   const [prioritization, setPrioritization] = useState<PrioritizationConfig>(defaultPrioritization);
-  const [validationRules, setValidationRules] = useState({
-    clients: {
-      requireUniqueID: true,
-      requireName: true,
-      validateEmail: false,
-      validatePhone: false
-    },
-    workers: {
-      requireUniqueID: true,
-      requireName: true,
-      validateEmail: false,
-      requireDepartment: false
-    },
-    tasks: {
-      requireUniqueID: true,
-      requireTitle: true,
-      validateClientID: false,
-      validateWorkerID: false,
-      validateDueDate: false
-    }
-  });
 
   const [showAddRuleDialog, setShowAddRuleDialog] = useState(false);
   const [editingRule, setEditingRule] = useState<BusinessRule | null>(null);
@@ -207,7 +189,6 @@ export default function RulesSection({ clients, workers, tasks, onRulesChange }:
         [rule]: value
       }
     };
-    setValidationRules(updatedValidationRules);
     notifyRulesChange({ validationRules: updatedValidationRules });
   };
 
@@ -237,8 +218,11 @@ export default function RulesSection({ clients, workers, tasks, onRulesChange }:
       }
     };
 
+    // Check if this rule came from an AI suggestion
+    const isAISuggested = rule.id.startsWith('applied-');
+
     return (
-      <Card key={rule.id} sx={{ mb: 2 }}>
+      <Card key={rule.id} sx={{ mb: 2, border: isAISuggested ? 2 : 1, borderColor: isAISuggested ? 'primary.main' : 'divider' }}>
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -246,6 +230,15 @@ export default function RulesSection({ clients, workers, tasks, onRulesChange }:
               <Typography variant="subtitle1" sx={{ textTransform: 'capitalize' }}>
                 {rule.type.replace('-', ' ')}
               </Typography>
+              {isAISuggested && (
+                <Chip 
+                  icon={<Lightbulb />}
+                  label="AI Suggested" 
+                  color="primary" 
+                  size="small"
+                  variant="outlined"
+                />
+              )}
             </Box>
             <Box>
               <IconButton size="small" onClick={() => handleEditRule(rule)}>
@@ -259,8 +252,32 @@ export default function RulesSection({ clients, workers, tasks, onRulesChange }:
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             {getRuleDescription(rule)}
           </Typography>
+          {isAISuggested && rule.description && (
+            <Typography variant="caption" color="primary.main" sx={{ mt: 1, display: 'block' }}>
+              AI Reasoning: {rule.description}
+            </Typography>
+          )}
         </CardContent>
       </Card>
+    );
+  };
+
+  const renderValidationRule = (entity: 'clients' | 'workers' | 'tasks', rule: string, value: boolean) => {
+    const isAISuggested = aiValidationDescriptions[rule];
+    return (
+      <ListItem key={rule} sx={{ pl: 2 }}>
+        <ListItemText
+          primary={
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>{rule}</Typography>
+              {isAISuggested && (
+                <Chip icon={<Lightbulb />} label="AI Suggested" color="primary" size="small" variant="outlined" />
+              )}
+            </Box>
+          }
+          secondary={isAISuggested ? aiValidationDescriptions[rule] : undefined}
+        />
+      </ListItem>
     );
   };
 
@@ -448,160 +465,22 @@ export default function RulesSection({ clients, workers, tasks, onRulesChange }:
       </Paper>
 
       {/* Validation Rules Section */}
-      <Paper sx={{ p: 3 }}>
+      <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
-          Data Validation Rules
+          Validation Rules
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Configure validation rules to ensure data quality and consistency across your datasets.
-        </Typography>
-        
-        <Accordion>
-          <AccordionSummary expandIcon={<ExpandMore />}>
-            <Typography variant="subtitle1">Client Validation Rules</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={validationRules.clients.requireUniqueID}
-                    onChange={(e) => handleValidationRuleChange('clients', 'requireUniqueID', e.target.checked)}
-                  />
-                }
-                label="Require Client ID to be unique"
-              />
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={validationRules.clients.requireName}
-                    onChange={(e) => handleValidationRuleChange('clients', 'requireName', e.target.checked)}
-                  />
-                }
-                label="Require Name field"
-              />
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={validationRules.clients.validateEmail}
-                    onChange={(e) => handleValidationRuleChange('clients', 'validateEmail', e.target.checked)}
-                  />
-                }
-                label="Validate email format"
-              />
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={validationRules.clients.validatePhone}
-                    onChange={(e) => handleValidationRuleChange('clients', 'validatePhone', e.target.checked)}
-                  />
-                }
-                label="Validate phone number format"
-              />
+        <List>
+          {Object.entries(validationRules).map(([entity, rules]) => (
+            <Box key={entity} sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" sx={{ textTransform: 'capitalize', mb: 1 }}>{entity}</Typography>
+              <List disablePadding>
+                {Object.entries(rules).map(([rule, value]) =>
+                  value ? renderValidationRule(entity as any, rule, value) : null
+                )}
+              </List>
             </Box>
-          </AccordionDetails>
-        </Accordion>
-        
-        <Accordion>
-          <AccordionSummary expandIcon={<ExpandMore />}>
-            <Typography variant="subtitle1">Worker Validation Rules</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={validationRules.workers.requireUniqueID}
-                    onChange={(e) => handleValidationRuleChange('workers', 'requireUniqueID', e.target.checked)}
-                  />
-                }
-                label="Require Worker ID to be unique"
-              />
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={validationRules.workers.requireName}
-                    onChange={(e) => handleValidationRuleChange('workers', 'requireName', e.target.checked)}
-                  />
-                }
-                label="Require Name field"
-              />
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={validationRules.workers.validateEmail}
-                    onChange={(e) => handleValidationRuleChange('workers', 'validateEmail', e.target.checked)}
-                  />
-                }
-                label="Validate email format"
-              />
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={validationRules.workers.requireDepartment}
-                    onChange={(e) => handleValidationRuleChange('workers', 'requireDepartment', e.target.checked)}
-                  />
-                }
-                label="Require Department field"
-              />
-            </Box>
-          </AccordionDetails>
-        </Accordion>
-        
-        <Accordion>
-          <AccordionSummary expandIcon={<ExpandMore />}>
-            <Typography variant="subtitle1">Task Validation Rules</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={validationRules.tasks.requireUniqueID}
-                    onChange={(e) => handleValidationRuleChange('tasks', 'requireUniqueID', e.target.checked)}
-                  />
-                }
-                label="Require Task ID to be unique"
-              />
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={validationRules.tasks.requireTitle}
-                    onChange={(e) => handleValidationRuleChange('tasks', 'requireTitle', e.target.checked)}
-                  />
-                }
-                label="Require Title field"
-              />
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={validationRules.tasks.validateClientID}
-                    onChange={(e) => handleValidationRuleChange('tasks', 'validateClientID', e.target.checked)}
-                  />
-                }
-                label="Validate Client ID exists in Clients table"
-              />
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={validationRules.tasks.validateWorkerID}
-                    onChange={(e) => handleValidationRuleChange('tasks', 'validateWorkerID', e.target.checked)}
-                  />
-                }
-                label="Validate Worker ID exists in Workers table"
-              />
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={validationRules.tasks.validateDueDate}
-                    onChange={(e) => handleValidationRuleChange('tasks', 'validateDueDate', e.target.checked)}
-                  />
-                }
-                label="Validate Due Date format"
-              />
-            </Box>
-          </AccordionDetails>
-        </Accordion>
+          ))}
+        </List>
       </Paper>
 
       {/* Add/Edit Rule Dialog */}
