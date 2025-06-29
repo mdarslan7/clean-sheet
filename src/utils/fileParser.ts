@@ -56,7 +56,20 @@ export function parseFile(file: File): Promise<FileData[]> {
           const objects = rows.map((row, index) => {
             const obj: any = {};
             headers.forEach((header, colIndex) => {
-              obj[header] = row[colIndex] || '';
+              let value = row[colIndex] || '';
+              
+              // Handle specific ID fields - ensure they're strings
+              const headerLower = header.toLowerCase();
+              if (headerLower.includes('id') || headerLower.includes('taskid') || headerLower.includes('clientid') || headerLower.includes('workerid')) {
+                value = String(value);
+              }
+              
+              // Handle empty values
+              if (value === null || value === undefined) {
+                value = '';
+              }
+              
+              obj[header] = value;
             });
             return obj;
           }).filter(obj => {
