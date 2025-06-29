@@ -366,8 +366,8 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
     }
   };
 
-  const handleFixError = (error: ValidationError) => {
-    console.log('Fixing error:', error);
+  const handleFixError = (error: ValidationError, suggestedValue?: string) => {
+    console.log('Fixing error:', error, 'with suggested value:', suggestedValue);
     
     // Find the row index for this error
     let data: any[] = [];
@@ -398,7 +398,34 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
     
     if (rowIndex !== -1) {
       console.log(`Found row at index ${rowIndex} for ${error.entityType} ${error.rowId}`);
-      handleManualEdit(entityType, rowIndex, error.field);
+      
+      if (suggestedValue !== undefined) {
+        // Apply the AI-suggested fix
+        const updatedData = [...data];
+        updatedData[rowIndex] = { ...updatedData[rowIndex], [error.field]: suggestedValue };
+        
+        console.log(`Applied AI fix: ${error.field} = ${suggestedValue}`);
+        onDataUpdate(entityType, updatedData);
+        
+        // Update local state
+        switch (entityType) {
+          case 'clients':
+            setCurrentClients(updatedData);
+            break;
+          case 'workers':
+            setCurrentWorkers(updatedData);
+            break;
+          case 'tasks':
+            setCurrentTasks(updatedData);
+            break;
+        }
+        
+        // Trigger re-validation
+        setValidationTrigger(prev => prev + 1);
+      } else {
+        // Fall back to manual edit mode
+        handleManualEdit(entityType, rowIndex, error.field);
+      }
     } else {
       console.log(`Could not find row for ${error.entityType} ${error.rowId}`);
       alert(`Could not find the row to fix. Please check the data.`);
@@ -665,6 +692,11 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
         errors={validationErrors}
         onNavigateToError={handleNavigateToError}
         onFixError={handleFixError}
+        allData={{
+          clients: currentClients,
+          workers: currentWorkers,
+          tasks: currentTasks
+        }}
       />
 
       <Snackbar
