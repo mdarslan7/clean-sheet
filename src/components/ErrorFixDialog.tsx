@@ -87,7 +87,7 @@ export default function ErrorFixDialog({
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <AutoFixHigh color="primary" />
-        <Typography variant="h6">
+        <Typography variant="h6" component="span">
           AI Error Fix Suggestion
         </Typography>
       </DialogTitle>
@@ -158,7 +158,8 @@ export default function ErrorFixDialog({
               border: 1, 
               borderColor: 'primary.light',
               borderRadius: 1,
-              backgroundColor: 'primary.light'
+              backgroundColor: 'primary.light',
+              color: theme => theme.palette.text.primary
             }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                 <Typography variant="body1" fontWeight="bold">
@@ -176,10 +177,10 @@ export default function ErrorFixDialog({
                 />
               </Box>
               
-              <Typography variant="body2" gutterBottom>
+              <Typography variant="body2" gutterBottom sx={{ color: theme => theme.palette.text.primary }}>
                 <strong>Explanation:</strong>
               </Typography>
-              <Typography variant="body2" sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ mb: 2, color: theme => theme.palette.text.primary }}>
                 {aiSuggestion.explanation}
               </Typography>
               

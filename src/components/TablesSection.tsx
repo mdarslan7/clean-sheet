@@ -18,6 +18,7 @@ import { Error, Warning } from '@mui/icons-material';
 import { Client, Worker, Task } from '../types';
 import { ValidationError, validateAllData, getCellClassName } from '../utils/validation';
 import ValidationSummary from './ValidationSummary';
+import { useTheme } from '@mui/material/styles';
 
 interface TablesSectionProps {
   clients: Client[];
@@ -511,31 +512,36 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
   const errorCount = validationErrors.filter(e => e.severity === 'error').length;
   const warningCount = validationErrors.filter(e => e.severity === 'warning').length;
 
+  const theme = useTheme();
+
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h4" gutterBottom>
-          Data Tables
-        </Typography>
-        
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          {(errorCount > 0 || warningCount > 0) && (
-            <Button
-              variant="outlined"
-              color={errorCount > 0 ? "error" : "warning"}
-              startIcon={errorCount > 0 ? <Error /> : <Warning />}
-              onClick={() => setShowValidationSummary(true)}
-              sx={{ minWidth: 200 }}
-            >
-              <Badge badgeContent={errorCount + warningCount} color={errorCount > 0 ? "error" : "warning"}>
-                <span>Validation Issues</span>
-              </Badge>
-            </Button>
-          )}
+    <Box sx={{ maxWidth: 1200, mx: 'auto', py: 2 }}>
+      <Typography variant="h4" sx={{ mb: 3, fontWeight: 700, letterSpacing: -1 }}>
+        Data Tables
+      </Typography>
+      <Paper sx={{ p: { xs: 1, sm: 3 }, mb: 3, borderRadius: 3, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)', background: theme.palette.background.paper }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h5" gutterBottom>
+            Data Tables
+          </Typography>
+          
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            {(errorCount > 0 || warningCount > 0) && (
+              <Button
+                variant="outlined"
+                color={errorCount > 0 ? "error" : "warning"}
+                startIcon={errorCount > 0 ? <Error /> : <Warning />}
+                onClick={() => setShowValidationSummary(true)}
+                sx={{ minWidth: 200 }}
+              >
+                <Badge badgeContent={errorCount + warningCount} color={errorCount > 0 ? "error" : "warning"}>
+                  <span>Validation Issues</span>
+                </Badge>
+              </Button>
+            )}
+          </Box>
         </Box>
-      </Box>
-      
-      <Paper sx={{ width: '100%' }}>
+        
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="data tables">
             <Tab 
@@ -616,6 +622,27 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
                   clientGridRef.current = params.api;
                   console.log('Client grid API captured:', params.api);
                 }}
+                sx={{
+                  background: theme.palette.background.paper,
+                  borderRadius: 2,
+                  boxShadow: 'none',
+                  '& .MuiDataGrid-row:hover': {
+                    background: '#f3f4f6',
+                  },
+                  '& .MuiDataGrid-cell': {
+                    borderBottom: `1px solid ${theme.palette.divider}`,
+                  },
+                  '& .MuiDataGrid-cell--error': {
+                    background: '#fef2f2',
+                    color: theme.palette.error.main,
+                  },
+                  '& .MuiDataGrid-columnHeaders': {
+                    background: '#f7f8fa',
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    color: theme.palette.text.primary,
+                  },
+                }}
               />
             ) : (
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -645,6 +672,27 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
                   workerGridRef.current = params.api;
                   console.log('Worker grid API captured:', params.api);
                 }}
+                sx={{
+                  background: theme.palette.background.paper,
+                  borderRadius: 2,
+                  boxShadow: 'none',
+                  '& .MuiDataGrid-row:hover': {
+                    background: '#f3f4f6',
+                  },
+                  '& .MuiDataGrid-cell': {
+                    borderBottom: `1px solid ${theme.palette.divider}`,
+                  },
+                  '& .MuiDataGrid-cell--error': {
+                    background: '#fef2f2',
+                    color: theme.palette.error.main,
+                  },
+                  '& .MuiDataGrid-columnHeaders': {
+                    background: '#f7f8fa',
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    color: theme.palette.text.primary,
+                  },
+                }}
               />
             ) : (
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -673,6 +721,27 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
                 onGridReady={(params) => {
                   taskGridRef.current = params.api;
                   console.log('Task grid API captured:', params.api);
+                }}
+                sx={{
+                  background: theme.palette.background.paper,
+                  borderRadius: 2,
+                  boxShadow: 'none',
+                  '& .MuiDataGrid-row:hover': {
+                    background: '#f3f4f6',
+                  },
+                  '& .MuiDataGrid-cell': {
+                    borderBottom: `1px solid ${theme.palette.divider}`,
+                  },
+                  '& .MuiDataGrid-cell--error': {
+                    background: '#fef2f2',
+                    color: theme.palette.error.main,
+                  },
+                  '& .MuiDataGrid-columnHeaders': {
+                    background: '#f7f8fa',
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    color: theme.palette.text.primary,
+                  },
                 }}
               />
             ) : (

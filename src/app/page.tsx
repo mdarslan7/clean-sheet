@@ -13,6 +13,7 @@ import { Client, Worker, Task, RulesConfig, BusinessRule } from '../types';
 import { RuleSuggestion, convertSuggestionToBusinessRule, ConvertedRuleResult } from '../utils/smartRuleSuggestions';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
+import { useTheme } from '@mui/material/styles';
 
 const drawerWidth = 240;
 
@@ -59,6 +60,8 @@ export default function Home() {
   const [appliedRules, setAppliedRules] = useState<Set<string>>(new Set());
   const [appliedSuggestions, setAppliedSuggestions] = useState<Map<string, RuleSuggestion>>(new Map());
   const [aiValidationDescriptions, setAiValidationDescriptions] = useState<Record<string, string>>({});
+
+  const theme = useTheme();
 
   const handleDataUpdate = (type: 'clients' | 'workers' | 'tasks', newData: any[]) => {
     console.log(`Data update for ${type}:`, {
@@ -222,19 +225,19 @@ export default function Home() {
   const hasData = clients.length > 0 || workers.length > 0 || tasks.length > 0;
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', background: theme.palette.background.default, minHeight: '100vh' }}>
       <CssBaseline />
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="h6" noWrap component="div">
-            Clean Sheet - AI-Powered Data Management
+      <AppBar position="fixed" elevation={0} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, background: theme.palette.background.paper, color: theme.palette.text.primary, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.04)' }}>
+        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', minHeight: 56 }}>
+          <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 700, letterSpacing: -1 }}>
+            Clean Sheet <span style={{ color: theme.palette.primary.main, fontWeight: 700 }}>- AI-Powered Data Management</span>
           </Typography>
           {hasData && (
             <Button 
               variant="contained" 
-              color="secondary" 
+              color="primary" 
               onClick={handleExportAll}
-              sx={{ ml: 2 }}
+              sx={{ ml: 2, fontWeight: 600, borderRadius: 2, boxShadow: 'none', px: 3 }}
             >
               Export All
             </Button>
@@ -246,68 +249,51 @@ export default function Home() {
         sx={{
           width: drawerWidth,
           flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
+          [`& .MuiDrawer-paper`]: {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+            background: theme.palette.background.default,
+            borderRight: `1px solid ${theme.palette.divider}`,
+            pt: 1,
+          },
         }}
       >
         <Toolbar />
-        <Box sx={{ overflow: 'auto' }}>
-          <List>
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => setCurrentSection('upload')}>
-                <ListItemIcon>
-                  <Upload />
-                </ListItemIcon>
-                <ListItemText primary="Upload" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => setCurrentSection('tables')}>
-                <ListItemIcon>
-                  <TableChart />
-                </ListItemIcon>
-                <ListItemText primary="Tables" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => setCurrentSection('rules')}>
-                <ListItemIcon>
-                  <Rule />
-                </ListItemIcon>
-                <ListItemText primary="Rules" />
-              </ListItemButton>
-            </ListItem>
-            {hasData && (
-              <>
-                <ListItem disablePadding>
-                  <ListItemButton onClick={() => setCurrentSection('smart-rules')}>
-                    <ListItemIcon>
-                      <Lightbulb />
-                    </ListItemIcon>
-                    <ListItemText primary="Smart Rules" />
-                  </ListItemButton>
-                </ListItem>
-                <ListItem disablePadding>
-                  <ListItemButton onClick={() => setCurrentSection('insights')}>
-                    <ListItemIcon>
-                      <Analytics />
-                    </ListItemIcon>
-                    <ListItemText primary="Data Insights" />
-                  </ListItemButton>
-                </ListItem>
-              </>
-            )}
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => setCurrentSection('export')}>
-                <ListItemIcon>
-                  <Download />
-                </ListItemIcon>
-                <ListItemText primary="Export" />
-              </ListItemButton>
-            </ListItem>
+        <Box sx={{ overflow: 'auto', py: 2 }}>
+          <List sx={{ gap: 1, display: 'flex', flexDirection: 'column' }}>
+            {[
+              { key: 'upload', label: 'Upload', icon: <Upload fontSize="small" /> },
+              { key: 'tables', label: 'Tables', icon: <TableChart fontSize="small" /> },
+              { key: 'rules', label: 'Rules', icon: <Rule fontSize="small" /> },
+              ...(hasData ? [
+                { key: 'smart-rules', label: 'Smart Rules', icon: <Lightbulb fontSize="small" /> },
+                { key: 'insights', label: 'Data Insights', icon: <Analytics fontSize="small" /> },
+              ] : []),
+              { key: 'export', label: 'Export', icon: <Download fontSize="small" /> },
+            ].map(({ key, label, icon }) => (
+              <ListItem disablePadding key={key} sx={{ borderRadius: 2, mb: 0.5 }}>
+                <ListItemButton
+                  selected={currentSection === key}
+                  onClick={() => setCurrentSection(key as Section)}
+                  sx={{
+                    borderRadius: 2,
+                    minHeight: 44,
+                    px: 2,
+                    color: currentSection === key ? theme.palette.primary.main : theme.palette.text.secondary,
+                    background: currentSection === key ? 'rgba(37,99,235,0.08)' : 'transparent',
+                    fontWeight: currentSection === key ? 600 : 500,
+                    transition: 'background 0.2s',
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 32, color: 'inherit' }}>{icon}</ListItemIcon>
+                  <ListItemText primary={label} primaryTypographyProps={{ fontSize: 15, fontWeight: currentSection === key ? 600 : 500 }} />
+                </ListItemButton>
+              </ListItem>
+            ))}
           </List>
         </Box>
       </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+      <Box component="main" sx={{ flexGrow: 1, p: { xs: 1, sm: 3 }, background: theme.palette.background.default, minHeight: '100vh' }}>
         <Toolbar />
         {renderSection()}
       </Box>

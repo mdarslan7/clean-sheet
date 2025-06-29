@@ -59,6 +59,7 @@ import {
   Worker,
   Task
 } from '../types';
+import { useTheme } from '@mui/material/styles';
 
 interface RulesSectionProps {
   clients: Client[];
@@ -80,6 +81,7 @@ const defaultPrioritization: PrioritizationConfig = {
 };
 
 export default function RulesSection({ clients, workers, tasks, validationRules, onRulesChange, aiValidationDescriptions = {} }: RulesSectionProps) {
+  const theme = useTheme();
   // Debug logging to see what data we're receiving
   console.log('RulesSection received data:', {
     clientsCount: clients.length,
@@ -282,38 +284,34 @@ export default function RulesSection({ clients, workers, tasks, validationRules,
   };
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', py: 2 }}>
+      <Typography variant="h4" sx={{ mb: 3, fontWeight: 700, letterSpacing: -1 }}>
         Rules & Configuration
       </Typography>
-      
       {/* Business Rules Section */}
-      <Paper sx={{ p: 3, mb: 3 }}>
+      <Paper sx={{ p: { xs: 1, sm: 3 }, mb: 3, borderRadius: 3, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)', background: theme.palette.background.paper }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="h6">
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
             Business Rules
           </Typography>
           <Button 
-            variant="contained" 
-            startIcon={<Add />}
+            variant="outlined" 
+            startIcon={<Add />} 
             onClick={() => setShowAddRuleDialog(true)}
+            sx={{ borderRadius: 2, fontWeight: 500 }}
           >
             Add Rule
           </Button>
         </Box>
-        
         {businessRules.length === 0 ? (
-          <Alert severity="info">
+          <Alert severity="info" sx={{ borderRadius: 2, background: theme.palette.background.default, color: theme.palette.text.secondary }}>
             No business rules defined. Click "Add Rule" to create your first rule.
           </Alert>
         ) : (
-          <List>
-            {businessRules.map(renderRuleCard)}
-          </List>
+          <List sx={{ mt: 1 }}>{businessRules.map(renderRuleCard)}</List>
         )}
-        
         {/* Data Availability Indicator */}
-        <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+        <Box sx={{ mt: 2, p: 2, bgcolor: theme.palette.background.default, borderRadius: 2 }}>
           <Typography variant="subtitle2" gutterBottom>
             Available Data for Rules:
           </Typography>
@@ -359,114 +357,9 @@ export default function RulesSection({ clients, workers, tasks, validationRules,
           </Box>
         </Box>
       </Paper>
-
-      {/* Prioritization Section */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Prioritization Weights
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Adjust the importance of different criteria for task scheduling and resource allocation.
-        </Typography>
-        
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <Typography gutterBottom>Priority Level</Typography>
-            <Slider
-              value={prioritization.priorityLevel}
-              onChange={(_, value) => handlePrioritizationChange('priorityLevel', value as number)}
-              valueLabelDisplay="auto"
-              marks={[
-                { value: 0, label: 'Low' },
-                { value: 50, label: 'Medium' },
-                { value: 100, label: 'High' }
-              ]}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Typography gutterBottom>Requested Task Fulfillment</Typography>
-            <Slider
-              value={prioritization.requestedTaskFulfillment}
-              onChange={(_, value) => handlePrioritizationChange('requestedTaskFulfillment', value as number)}
-              valueLabelDisplay="auto"
-              marks={[
-                { value: 0, label: 'Low' },
-                { value: 50, label: 'Medium' },
-                { value: 100, label: 'High' }
-              ]}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Typography gutterBottom>Fairness</Typography>
-            <Slider
-              value={prioritization.fairness}
-              onChange={(_, value) => handlePrioritizationChange('fairness', value as number)}
-              valueLabelDisplay="auto"
-              marks={[
-                { value: 0, label: 'Low' },
-                { value: 50, label: 'Medium' },
-                { value: 100, label: 'High' }
-              ]}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Typography gutterBottom>Efficiency</Typography>
-            <Slider
-              value={prioritization.efficiency}
-              onChange={(_, value) => handlePrioritizationChange('efficiency', value as number)}
-              valueLabelDisplay="auto"
-              marks={[
-                { value: 0, label: 'Low' },
-                { value: 50, label: 'Medium' },
-                { value: 100, label: 'High' }
-              ]}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Typography gutterBottom>Deadline Adherence</Typography>
-            <Slider
-              value={prioritization.deadlineAdherence}
-              onChange={(_, value) => handlePrioritizationChange('deadlineAdherence', value as number)}
-              valueLabelDisplay="auto"
-              marks={[
-                { value: 0, label: 'Low' },
-                { value: 50, label: 'Medium' },
-                { value: 100, label: 'High' }
-              ]}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Typography gutterBottom>Skill Match</Typography>
-            <Slider
-              value={prioritization.skillMatch}
-              onChange={(_, value) => handlePrioritizationChange('skillMatch', value as number)}
-              valueLabelDisplay="auto"
-              marks={[
-                { value: 0, label: 'Low' },
-                { value: 50, label: 'Medium' },
-                { value: 100, label: 'High' }
-              ]}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Typography gutterBottom>Workload Balance</Typography>
-            <Slider
-              value={prioritization.workloadBalance}
-              onChange={(_, value) => handlePrioritizationChange('workloadBalance', value as number)}
-              valueLabelDisplay="auto"
-              marks={[
-                { value: 0, label: 'Low' },
-                { value: 50, label: 'Medium' },
-                { value: 100, label: 'High' }
-              ]}
-            />
-          </Grid>
-        </Grid>
-      </Paper>
-
       {/* Validation Rules Section */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
+      <Paper sx={{ p: { xs: 1, sm: 3 }, mb: 3, borderRadius: 3, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)', background: theme.palette.background.paper }}>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
           Validation Rules
         </Typography>
         <List>
@@ -482,7 +375,115 @@ export default function RulesSection({ clients, workers, tasks, validationRules,
           ))}
         </List>
       </Paper>
-
+      {/* Prioritization Section */}
+      <Paper sx={{ p: { xs: 1, sm: 3 }, mb: 3, borderRadius: 3, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)', background: theme.palette.background.paper }}>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+          Prioritization Weights
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Adjust the importance of different criteria for task scheduling and resource allocation.
+        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Box>
+            <Typography gutterBottom>Priority Level</Typography>
+            <Slider
+              value={prioritization.priorityLevel}
+              onChange={(_, value) => handlePrioritizationChange('priorityLevel', value as number)}
+              valueLabelDisplay="auto"
+              marks={[
+                { value: 0, label: 'Low' },
+                { value: 50, label: 'Medium' },
+                { value: 100, label: 'High' }
+              ]}
+              sx={{ mb: 3 }}
+            />
+          </Box>
+          <Box>
+            <Typography gutterBottom>Requested Task Fulfillment</Typography>
+            <Slider
+              value={prioritization.requestedTaskFulfillment}
+              onChange={(_, value) => handlePrioritizationChange('requestedTaskFulfillment', value as number)}
+              valueLabelDisplay="auto"
+              marks={[
+                { value: 0, label: 'Low' },
+                { value: 50, label: 'Medium' },
+                { value: 100, label: 'High' }
+              ]}
+              sx={{ mb: 3 }}
+            />
+          </Box>
+          <Box>
+            <Typography gutterBottom>Fairness</Typography>
+            <Slider
+              value={prioritization.fairness}
+              onChange={(_, value) => handlePrioritizationChange('fairness', value as number)}
+              valueLabelDisplay="auto"
+              marks={[
+                { value: 0, label: 'Low' },
+                { value: 50, label: 'Medium' },
+                { value: 100, label: 'High' }
+              ]}
+              sx={{ mb: 3 }}
+            />
+          </Box>
+          <Box>
+            <Typography gutterBottom>Efficiency</Typography>
+            <Slider
+              value={prioritization.efficiency}
+              onChange={(_, value) => handlePrioritizationChange('efficiency', value as number)}
+              valueLabelDisplay="auto"
+              marks={[
+                { value: 0, label: 'Low' },
+                { value: 50, label: 'Medium' },
+                { value: 100, label: 'High' }
+              ]}
+              sx={{ mb: 3 }}
+            />
+          </Box>
+          <Box>
+            <Typography gutterBottom>Deadline Adherence</Typography>
+            <Slider
+              value={prioritization.deadlineAdherence}
+              onChange={(_, value) => handlePrioritizationChange('deadlineAdherence', value as number)}
+              valueLabelDisplay="auto"
+              marks={[
+                { value: 0, label: 'Low' },
+                { value: 50, label: 'Medium' },
+                { value: 100, label: 'High' }
+              ]}
+              sx={{ mb: 3 }}
+            />
+          </Box>
+          <Box>
+            <Typography gutterBottom>Skill Match</Typography>
+            <Slider
+              value={prioritization.skillMatch}
+              onChange={(_, value) => handlePrioritizationChange('skillMatch', value as number)}
+              valueLabelDisplay="auto"
+              marks={[
+                { value: 0, label: 'Low' },
+                { value: 50, label: 'Medium' },
+                { value: 100, label: 'High' }
+              ]}
+              sx={{ mb: 3 }}
+            />
+          </Box>
+          <Box>
+            <Typography gutterBottom>Workload Balance</Typography>
+            <Slider
+              value={prioritization.workloadBalance}
+              onChange={(_, value) => handlePrioritizationChange('workloadBalance', value as number)}
+              valueLabelDisplay="auto"
+              marks={[
+                { value: 0, label: 'Low' },
+                { value: 50, label: 'Medium' },
+                { value: 100, label: 'High' }
+              ]}
+              sx={{ mb: 1 }}
+            />
+          </Box>
+        </Box>
+      </Paper>
       {/* Add/Edit Rule Dialog */}
       <AddRuleDialog
         open={showAddRuleDialog}

@@ -39,6 +39,7 @@ import {
 } from '@mui/icons-material';
 import { Client, Worker, Task } from '../types';
 import { RuleSuggestion, getSmartRuleSuggestions } from '../utils/smartRuleSuggestions';
+import { useTheme } from '@mui/material/styles';
 
 interface SmartRuleSuggestionsProps {
   clients: Client[];
@@ -60,6 +61,7 @@ export default function SmartRuleSuggestions({
   const [suggestions, setSuggestions] = useState<RuleSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const theme = useTheme();
 
   // Load suggestions when data changes
   useEffect(() => {
@@ -160,10 +162,9 @@ export default function SmartRuleSuggestions({
   }
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
-      {/* Header */}
+    <Box sx={{ maxWidth: 1200, mx: 'auto', py: 2 }}>
       <Box sx={{ mb: 3, textAlign: 'center' }}>
-        <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+        <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, fontWeight: 700, letterSpacing: -1 }}>
           <Lightbulb color="primary" />
           Smart Rule Suggestions
         </Typography>
@@ -171,15 +172,13 @@ export default function SmartRuleSuggestions({
           AI analyzes your data patterns and suggests business rules to improve data quality and efficiency
         </Typography>
       </Box>
-
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2, background: theme.palette.background.default, color: theme.palette.error.main }}>
           {error}
         </Alert>
       )}
-
       {suggestions.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
+        <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 3, background: theme.palette.background.paper }}>
           <Typography variant="h6" gutterBottom>
             No Rule Suggestions Available
           </Typography>
@@ -189,10 +188,9 @@ export default function SmartRuleSuggestions({
         </Paper>
       ) : (
         <Box>
-          {/* Summary */}
-          <Paper sx={{ p: 2, mb: 3 }}>
+          <Paper sx={{ p: 2, mb: 3, borderRadius: 3, background: theme.palette.background.paper }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="h6">
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Found {suggestions.length} Rule Suggestions
               </Typography>
               <Chip 
@@ -202,14 +200,12 @@ export default function SmartRuleSuggestions({
               />
             </Box>
           </Paper>
-
-          {/* Grouped Suggestions */}
           {Object.entries(groupedSuggestions).map(([ruleType, ruleSuggestions]) => (
-            <Accordion key={ruleType} defaultExpanded sx={{ mb: 2 }}>
+            <Accordion key={ruleType} defaultExpanded sx={{ mb: 2, borderRadius: 3, background: theme.palette.background.paper, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)' }}>
               <AccordionSummary expandIcon={<ExpandMore />}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
                   {getRuleTypeIcon(ruleType)}
-                  <Typography variant="h6">
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     {ruleType.charAt(0).toUpperCase() + ruleType.slice(1)} Rules
                   </Typography>
                   <Chip 
@@ -222,17 +218,16 @@ export default function SmartRuleSuggestions({
               <AccordionDetails>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {ruleSuggestions.map((suggestion) => (
-                    <Card key={suggestion.id} sx={{ border: 1, borderColor: 'divider' }}>
+                    <Card key={suggestion.id} sx={{ border: 1, borderColor: 'divider', borderRadius: 3, background: theme.palette.background.paper, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)' }}>
                       <CardContent>
                         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
                           <Box sx={{ flex: 1 }}>
-                            <Typography variant="h6" gutterBottom>
+                            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
                               {suggestion.title}
                             </Typography>
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                               {suggestion.description}
                             </Typography>
-                            
                             <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
                               <Chip 
                                 label={suggestion.entityType} 
@@ -252,14 +247,12 @@ export default function SmartRuleSuggestions({
                                        suggestion.suggestedRule.severity === 'warning' ? 'warning' : 'info'}
                               />
                             </Box>
-
                             <Typography variant="subtitle2" gutterBottom>
                               Reasoning:
                             </Typography>
                             <Typography variant="body2" sx={{ mb: 2 }}>
                               {suggestion.reasoning}
                             </Typography>
-
                             {suggestion.examples.length > 0 && (
                               <>
                                 <Typography variant="subtitle2" gutterBottom>
@@ -279,7 +272,6 @@ export default function SmartRuleSuggestions({
                             )}
                           </Box>
                         </Box>
-
                         <LinearProgress 
                           variant="determinate" 
                           value={suggestion.confidence}
@@ -287,8 +279,7 @@ export default function SmartRuleSuggestions({
                           sx={{ height: 6, borderRadius: 3, mb: 2 }}
                         />
                       </CardContent>
-                      
-                      <CardActions>
+                      <CardActions sx={{ px: 2, pb: 2 }}>
                         {appliedRules.has(suggestion.id) ? (
                           <Box sx={{ display: 'flex', gap: 1 }}>
                             <Chip 
@@ -303,6 +294,7 @@ export default function SmartRuleSuggestions({
                               startIcon={<Undo />}
                               onClick={() => handleUnapplyRule(suggestion.id)}
                               size="small"
+                              sx={{ borderRadius: 2 }}
                             >
                               Unapply
                             </Button>
@@ -313,6 +305,7 @@ export default function SmartRuleSuggestions({
                             startIcon={<PlayArrow />}
                             onClick={() => handleApplyRule(suggestion)}
                             disabled={!onApplyRule}
+                            sx={{ borderRadius: 2 }}
                           >
                             Apply Rule
                           </Button>

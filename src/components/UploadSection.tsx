@@ -14,6 +14,7 @@ import {
 import { CloudUpload, CheckCircle, Error, Warning } from '@mui/icons-material';
 import { parseFile } from '../utils/fileParser';
 import { FileData } from '../types';
+import { useTheme } from '@mui/material/styles';
 
 interface UploadSectionProps {
   onDataUpdate: (type: 'clients' | 'workers' | 'tasks', data: any[]) => void;
@@ -24,6 +25,7 @@ export default function UploadSection({ onDataUpdate }: UploadSectionProps) {
   const [uploadedFiles, setUploadedFiles] = useState<FileData[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+  const theme = useTheme();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -138,59 +140,29 @@ export default function UploadSection({ onDataUpdate }: UploadSectionProps) {
   };
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Upload Files
-      </Typography>
-      
-      <Paper
-        sx={{
-          p: 4,
-          textAlign: 'center',
-          border: '2px dashed #ccc',
-          borderColor: 'primary.main',
-          backgroundColor: 'grey.50',
-          cursor: 'pointer',
-          '&:hover': {
-            borderColor: 'primary.dark',
-            backgroundColor: 'grey.100',
-          }
-        }}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
-        <input
-          type="file"
-          multiple
-          accept=".xlsx,.xls,.csv"
-          onChange={handleFileUpload}
-          style={{ display: 'none' }}
-          id="file-upload"
-        />
-        <label htmlFor="file-upload">
+    <Box sx={{ maxWidth: 700, mx: 'auto', py: 4 }}>
+      <Paper sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)', background: theme.palette.background.paper, textAlign: 'center' }}>
+        <Typography variant="h4" sx={{ mb: 2, fontWeight: 700, letterSpacing: -1 }}>
+          Upload Files
+        </Typography>
+        <Box sx={{ my: 3 }}>
           <Button
-            component="span"
-            variant="contained"
-            size="large"
-            startIcon={isUploading ? <CircularProgress size={20} /> : <CloudUpload />}
-            disabled={isUploading}
-            sx={{ mb: 2 }}
+            variant="outlined"
+            color="primary"
+            component="label"
+            sx={{ borderRadius: 2, fontWeight: 500, px: 4, py: 1.5, fontSize: 18 }}
           >
-            {isUploading ? 'Uploading...' : 'Choose Files or Drag & Drop'}
+            CHOOSE FILES OR DRAG & DROP
+            <input type="file" hidden multiple onChange={handleFileUpload} />
           </Button>
-        </label>
-        
-        <Typography variant="body1" color="text.secondary">
-          Supported formats: .xlsx, .xls, .csv
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Supported formats: <b>.xlsx, .xls, .csv</b>
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Files will be automatically categorized as Clients, Workers, or Tasks based on column headers
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Multi-sheet Excel files are supported - each sheet will be processed separately
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          Data will be validated automatically after upload
+          Files will be automatically categorized as Clients, Workers, or Tasks based on column headers.<br />
+          Multi-sheet Excel files are supported - each sheet will be processed separately.<br />
+          Data will be validated automatically after upload.
         </Typography>
       </Paper>
 

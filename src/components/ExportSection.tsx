@@ -19,17 +19,20 @@ import {
 import { Download, FileDownload } from '@mui/icons-material';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-import { Client, Worker, Task } from '../types';
+import { Client, Worker, Task, RulesConfig } from '../types';
+import { useTheme } from '@mui/material/styles';
 
 interface ExportSectionProps {
   clients: Client[];
   workers: Worker[];
   tasks: Task[];
+  rules?: RulesConfig;
 }
 
-export default function ExportSection({ clients, workers, tasks }: ExportSectionProps) {
+export default function ExportSection({ clients, workers, tasks, rules }: ExportSectionProps) {
   const [selectedFormat, setSelectedFormat] = useState<'xlsx' | 'csv'>('xlsx');
   const [selectedData, setSelectedData] = useState<('clients' | 'workers' | 'tasks')[]>(['clients']);
+  const theme = useTheme();
 
   const handleDataSelection = (dataType: 'clients' | 'workers' | 'tasks') => {
     setSelectedData(prev => 
@@ -113,154 +116,88 @@ export default function ExportSection({ clients, workers, tasks }: ExportSection
     }
   };
 
-  const exportAllAsOne = () => {
+  const exportAllData = () => {
     if (clients.length === 0 && workers.length === 0 && tasks.length === 0) {
       alert('No data available to export');
       return;
     }
-
-    const allData = {
-      clients,
-      workers,
-      tasks
-    };
-
-    const dataString = JSON.stringify(allData, null, 2);
-    const blob = new Blob([dataString], { type: 'application/json' });
+    const workbook = XLSX.utils.book_new();
+    const allData = [
+      { data: clients, name: 'Clients' },
+      { data: workers, name: 'Workers' },
+      { data: tasks, name: 'Tasks' }
+    ];
+    allData.forEach(({ data, name }) => {
+      if (data.length > 0) {
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        XLSX.utils.book_append_sheet(workbook, worksheet, name);
+      }
+    });
     const timestamp = new Date().toISOString().split('T')[0];
-    saveAs(blob, `clean-sheet-all-data-${timestamp}.json`);
+    if (selectedFormat === 'xlsx') {
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      saveAs(blob, `clean-sheet-all-data-${timestamp}.xlsx`);
+    } else {
+      // For CSV, export each sheet separately
+      allData.forEach(({ data, name }) => {
+        if (data.length > 0) {
+          const worksheet = XLSX.utils.json_to_sheet(data);
+          const csvContent = XLSX.utils.sheet_to_csv(worksheet);
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+          saveAs(blob, `${name.toLowerCase()}-${timestamp}.csv`);
+        }
+      });
+    }
+  };
+
+  const exportRules = () => {
+    if (!rules) {
+      alert('No rules available to export');
+      return;
+    }
+    const dataString = JSON.stringify(rules, null, 2);
+    const timestamp = new Date().toISOString().split('T')[0];
+    const blob = new Blob([dataString], { type: 'application/json' });
+    saveAs(blob, `rules-${timestamp}.json`);
   };
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Export Data
-      </Typography>
-      
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Export Options
+    <Box sx={{ maxWidth: 700, mx: 'auto', py: 4 }}>
+      <Paper sx={{ p: { xs: 2, sm: 4 }, borderRadius: 3, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)', background: theme.palette.background.paper, textAlign: 'center' }}>
+        <Typography variant="h4" sx={{ mb: 2, fontWeight: 700, letterSpacing: -1 }}>
+          Export Data
         </Typography>
-        
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {/* Format Selection */}
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Export Format</InputLabel>
-            <Select
-              value={selectedFormat}
-              label="Export Format"
-              onChange={(e) => setSelectedFormat(e.target.value as 'xlsx' | 'csv')}
-            >
-              <MenuItem value="xlsx">Excel (.xlsx)</MenuItem>
-              <MenuItem value="csv">CSV (.csv)</MenuItem>
-            </Select>
-          </FormControl>
-
-          {/* Data Selection */}
-          <Box>
-            <Typography variant="subtitle1" gutterBottom>
-              Select Data to Export
-            </Typography>
-            <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selectedData.includes('clients')}
-                    onChange={() => handleDataSelection('clients')}
-                  />
-                }
-                label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    Clients
-                    <Chip label={clients.length} size="small" color="primary" />
-                  </Box>
-                }
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selectedData.includes('workers')}
-                    onChange={() => handleDataSelection('workers')}
-                  />
-                }
-                label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    Workers
-                    <Chip label={workers.length} size="small" color="secondary" />
-                  </Box>
-                }
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selectedData.includes('tasks')}
-                    onChange={() => handleDataSelection('tasks')}
-                  />
-                }
-                label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    Tasks
-                    <Chip label={tasks.length} size="small" color="success" />
-                  </Box>
-                }
-              />
-            </Stack>
-          </Box>
-
-          {/* Export Buttons */}
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <Button
-              variant="contained"
-              startIcon={<Download />}
-              onClick={exportData}
-              disabled={selectedData.length === 0}
-            >
-              Export Selected Data
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<FileDownload />}
-              onClick={exportAllAsOne}
-              disabled={clients.length === 0 && workers.length === 0 && tasks.length === 0}
-            >
-              Export All as JSON
-            </Button>
-          </Box>
-
-          {/* Info */}
-          <Alert severity="info">
-            <Typography variant="body2">
-              {selectedFormat === 'xlsx' 
-                ? 'Excel files will contain all selected datasets as separate sheets in a single file.'
-                : 'CSV files will be exported as separate files for each selected dataset.'
-              }
-            </Typography>
-          </Alert>
-
-          {/* Data Summary */}
-          <Box>
-            <Typography variant="subtitle1" gutterBottom>
-              Data Summary
-            </Typography>
-            <Stack direction="row" spacing={2}>
-              <Chip 
-                label={`${clients.length} Clients`} 
-                color="primary" 
-                variant="outlined" 
-              />
-              <Chip 
-                label={`${workers.length} Workers`} 
-                color="secondary" 
-                variant="outlined" 
-              />
-              <Chip 
-                label={`${tasks.length} Tasks`} 
-                color="success" 
-                variant="outlined" 
-              />
-            </Stack>
-          </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Download your cleaned data and rules for use in other systems or for backup.
+        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 3, justifyContent: 'center', mb: 3 }}>
+          <FormControlLabel
+            control={<Checkbox checked={selectedData.includes('clients')} onChange={() => handleDataSelection('clients')} color="primary" />}
+            label={<Typography variant="body2">Clients</Typography>}
+          />
+          <FormControlLabel
+            control={<Checkbox checked={selectedData.includes('workers')} onChange={() => handleDataSelection('workers')} color="primary" />}
+            label={<Typography variant="body2">Workers</Typography>}
+          />
+          <FormControlLabel
+            control={<Checkbox checked={selectedData.includes('tasks')} onChange={() => handleDataSelection('tasks')} color="primary" />}
+            label={<Typography variant="body2">Tasks</Typography>}
+          />
         </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', mb: 2 }}>
+          <Button
+            variant="contained"
+            startIcon={<Download />}
+            onClick={exportData}
+            disabled={selectedData.length === 0}
+          >
+            Export Selected Data
+          </Button>
+        </Box>
+        <Typography variant="body2" color="text.secondary">
+          Exports include: Cleaned CSVs for Clients, Workers, Tasks, and a rules.json file.
+        </Typography>
       </Paper>
     </Box>
   );

@@ -37,6 +37,7 @@ import {
 } from '@mui/icons-material';
 import { Client, Worker, Task } from '../types';
 import { DataQualityInsight, getDataQualityInsights } from '../utils/dataQualityInsights';
+import { useTheme } from '@mui/material/styles';
 
 interface DataQualityInsightsProps {
   clients: Client[];
@@ -52,6 +53,7 @@ export default function DataQualityInsights({
   const [insights, setInsights] = useState<DataQualityInsight[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const theme = useTheme();
 
   // Load insights when data changes
   useEffect(() => {
@@ -151,10 +153,9 @@ export default function DataQualityInsights({
   }
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
-      {/* Header */}
+    <Box sx={{ maxWidth: 1200, mx: 'auto', py: 2 }}>
       <Box sx={{ mb: 3, textAlign: 'center' }}>
-        <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+        <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, fontWeight: 700, letterSpacing: -1 }}>
           <Analytics color="primary" />
           Data Quality Insights
         </Typography>
@@ -162,15 +163,13 @@ export default function DataQualityInsights({
           AI analyzes your data to identify potential issues and optimization opportunities
         </Typography>
       </Box>
-
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2, background: theme.palette.background.default, color: theme.palette.error.main }}>
           {error}
         </Alert>
       )}
-
       {insights.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
+        <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 3, background: theme.palette.background.paper }}>
           <Typography variant="h6" gutterBottom>
             No Insights Available
           </Typography>
@@ -180,10 +179,9 @@ export default function DataQualityInsights({
         </Paper>
       ) : (
         <Box>
-          {/* Summary Cards */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={12} md={3}>
-              <Card>
+              <Card sx={{ borderRadius: 3, background: theme.palette.background.paper, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)' }}>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Typography variant="h4" color="error">
                     {insights.filter(i => i.severity === 'critical').length}
@@ -195,7 +193,7 @@ export default function DataQualityInsights({
               </Card>
             </Grid>
             <Grid item xs={12} md={3}>
-              <Card>
+              <Card sx={{ borderRadius: 3, background: theme.palette.background.paper, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)' }}>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Typography variant="h4" color="warning.main">
                     {insights.filter(i => i.severity === 'warning').length}
@@ -207,7 +205,7 @@ export default function DataQualityInsights({
               </Card>
             </Grid>
             <Grid item xs={12} md={3}>
-              <Card>
+              <Card sx={{ borderRadius: 3, background: theme.palette.background.paper, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)' }}>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Typography variant="h4" color="info.main">
                     {insights.filter(i => i.severity === 'info').length}
@@ -219,7 +217,7 @@ export default function DataQualityInsights({
               </Card>
             </Grid>
             <Grid item xs={12} md={3}>
-              <Card>
+              <Card sx={{ borderRadius: 3, background: theme.palette.background.paper, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)' }}>
                 <CardContent sx={{ textAlign: 'center' }}>
                   <Typography variant="h4" color="primary">
                     {insights.length}
@@ -231,18 +229,15 @@ export default function DataQualityInsights({
               </Card>
             </Grid>
           </Grid>
-
-          {/* Grouped Insights by Severity */}
           {severityOrder.map(severity => {
             const severityInsights = groupedInsights[severity];
             if (!severityInsights || severityInsights.length === 0) return null;
-
             return (
-              <Accordion key={severity} defaultExpanded sx={{ mb: 2 }}>
+              <Accordion key={severity} defaultExpanded sx={{ mb: 2, borderRadius: 3, background: theme.palette.background.paper, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)' }}>
                 <AccordionSummary expandIcon={<ExpandMore />}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
                     {getSeverityIcon(severity)}
-                    <Typography variant="h6">
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
                       {severity.charAt(0).toUpperCase() + severity.slice(1)} Issues
                     </Typography>
                     <Chip 
@@ -256,21 +251,19 @@ export default function DataQualityInsights({
                 <AccordionDetails>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     {severityInsights.map((insight) => (
-                      <Card key={insight.id} sx={{ border: 1, borderColor: 'divider' }}>
+                      <Card key={insight.id} sx={{ border: 1, borderColor: 'divider', borderRadius: 3, background: theme.palette.background.paper, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)' }}>
                         <CardContent>
                           <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
                             <Box sx={{ flex: 1 }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                                 {getInsightTypeIcon(insight.type)}
-                                <Typography variant="h6">
+                                <Typography variant="h6" sx={{ fontWeight: 600 }}>
                                   {insight.title}
                                 </Typography>
                               </Box>
-                              
                               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                                 {insight.description}
                               </Typography>
-                              
                               <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
                                 <Chip 
                                   label={insight.type} 
@@ -287,22 +280,18 @@ export default function DataQualityInsights({
                                   />
                                 ))}
                               </Box>
-
                               <Typography variant="subtitle2" gutterBottom>
                                 Impact:
                               </Typography>
                               <Typography variant="body2" sx={{ mb: 2 }}>
                                 {insight.impact}
                               </Typography>
-
                               <Typography variant="subtitle2" gutterBottom>
                                 Recommendation:
                               </Typography>
                               <Typography variant="body2" sx={{ mb: 2 }}>
                                 {insight.recommendation}
                               </Typography>
-
-                              {/* Metrics */}
                               {insight.metrics && (
                                 <Box sx={{ mb: 2 }}>
                                   <Typography variant="subtitle2" gutterBottom>

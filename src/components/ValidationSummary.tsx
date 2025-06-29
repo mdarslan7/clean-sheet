@@ -17,7 +17,9 @@ import {
   ListItem, 
   ListItemText, 
   IconButton,
-  Tooltip
+  Tooltip,
+  Paper,
+  ListItemIcon
 } from '@mui/material';
 import { 
   ExpandMore, 
@@ -29,6 +31,7 @@ import {
 } from '@mui/icons-material';
 import { ValidationError } from '../utils/validation';
 import ErrorFixDialog from './ErrorFixDialog';
+import { useTheme } from '@mui/material/styles';
 
 interface ValidationSummaryProps {
   open: boolean;
@@ -133,6 +136,8 @@ export default function ValidationSummary({
     return rowData || {};
   };
 
+  const theme = useTheme();
+
   return (
     <>
       <Dialog 
@@ -192,175 +197,63 @@ export default function ValidationSummary({
               </Typography>
             </Box>
           ) : (
-            <Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Found {totalCount} validation issue{totalCount !== 1 ? 's' : ''} across your data.
-              </Typography>
-
+            <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3, borderRadius: 3, boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)', background: theme.palette.background.paper }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                <Error color="error" />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Validation Issues
+                </Typography>
+                <Chip label={`${errors.length} Errors`} color="error" variant="outlined" size="small" />
+                <Chip label={`${warningCount} Warnings`} color="warning" variant="outlined" size="small" />
+              </Box>
               {Object.entries(groupedErrors).map(([entityType, entityErrors]) => {
-                const { errors, warnings } = getGroupedBySeverity(entityErrors);
-                const entityTotal = entityErrors.length;
-
+                const { errors: entityErrorsList, warnings: entityWarningsList } = getGroupedBySeverity(entityErrors);
+                if (entityErrorsList.length === 0 && entityWarningsList.length === 0) return null;
                 return (
-                  <Accordion key={entityType} defaultExpanded>
+                  <Accordion key={entityType} defaultExpanded sx={{ mb: 2, borderRadius: 2, boxShadow: 'none', background: theme.palette.background.default }}>
                     <AccordionSummary expandIcon={<ExpandMore />}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                        <Typography variant="subtitle1">
-                          {getEntityDisplayName(entityType)}
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          {errors.length > 0 && (
-                            <Chip 
-                              label={errors.length} 
-                              color="error" 
-                              size="small" 
-                              variant="outlined"
-                            />
-                          )}
-                          {warnings.length > 0 && (
-                            <Chip 
-                              label={warnings.length} 
-                              color="warning" 
-                              size="small" 
-                              variant="outlined"
-                            />
-                          )}
-                        </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{getEntityDisplayName(entityType)}</Typography>
+                        {entityErrorsList.length > 0 && <Chip label={`${entityErrorsList.length} Errors`} color="error" size="small" />}
+                        {entityWarningsList.length > 0 && <Chip label={`${entityWarningsList.length} Warnings`} color="warning" size="small" />}
                       </Box>
                     </AccordionSummary>
                     <AccordionDetails>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        {/* Errors */}
-                        {errors.length > 0 && (
-                          <Box>
-                            <Typography variant="subtitle2" color="error" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Error fontSize="small" />
-                              Errors ({errors.length})
-                            </Typography>
-                            <List dense>
-                              {errors.map((error, index) => (
-                                <ListItem 
-                                  key={getErrorKey(error, index)}
-                                  sx={{ 
-                                    border: 1, 
-                                    borderColor: 'error.light', 
-                                    borderRadius: 1, 
-                                    mb: 1,
-                                    backgroundColor: 'error.light',
-                                    '&:hover': { backgroundColor: 'error.main', color: 'white' }
-                                  }}
-                                >
-                                  <ListItemText
-                                    primary={
-                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Typography variant="body2" fontWeight="bold">
-                                          {error.field}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                          (Row: {error.rowId})
-                                        </Typography>
-                                      </Box>
-                                    }
-                                    secondary={error.message}
-                                  />
-                                  <Box sx={{ display: 'flex', gap: 1 }}>
-                                    {onFixError && (
-                                      <Tooltip title="Get AI-powered fix suggestion">
-                                        <Button 
-                                          size="small" 
-                                          variant="contained"
-                                          color="primary"
-                                          startIcon={<AutoFixHigh />}
-                                          onClick={() => handleFixError(error)}
-                                        >
-                                          AI Fix
-                                        </Button>
-                                      </Tooltip>
-                                    )}
-                                    {onNavigateToError && (
-                                      <Button 
-                                        size="small" 
-                                        variant="outlined"
-                                        onClick={() => onNavigateToError(error)}
-                                      >
-                                        Navigate
-                                      </Button>
-                                    )}
-                                  </Box>
-                                </ListItem>
-                              ))}
-                            </List>
-                          </Box>
-                        )}
-
-                        {/* Warnings */}
-                        {warnings.length > 0 && (
-                          <Box>
-                            <Typography variant="subtitle2" color="warning.main" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Warning fontSize="small" />
-                              Warnings ({warnings.length})
-                            </Typography>
-                            <List dense>
-                              {warnings.map((warning, index) => (
-                                <ListItem 
-                                  key={getErrorKey(warning, index)}
-                                  sx={{ 
-                                    border: 1, 
-                                    borderColor: 'warning.light', 
-                                    borderRadius: 1, 
-                                    mb: 1,
-                                    backgroundColor: 'warning.light',
-                                    '&:hover': { backgroundColor: 'warning.main', color: 'white' }
-                                  }}
-                                >
-                                  <ListItemText
-                                    primary={
-                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Typography variant="body2" fontWeight="bold">
-                                          {warning.field}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                          (Row: {warning.rowId})
-                                        </Typography>
-                                      </Box>
-                                    }
-                                    secondary={warning.message}
-                                  />
-                                  <Box sx={{ display: 'flex', gap: 1 }}>
-                                    {onFixError && (
-                                      <Tooltip title="Get AI-powered fix suggestion">
-                                        <Button 
-                                          size="small" 
-                                          variant="contained"
-                                          color="warning"
-                                          startIcon={<AutoFixHigh />}
-                                          onClick={() => handleFixError(warning)}
-                                        >
-                                          AI Fix
-                                        </Button>
-                                      </Tooltip>
-                                    )}
-                                    {onNavigateToError && (
-                                      <Button 
-                                        size="small" 
-                                        variant="outlined"
-                                        onClick={() => onNavigateToError(warning)}
-                                      >
-                                        Navigate
-                                      </Button>
-                                    )}
-                                  </Box>
-                                </ListItem>
-                              ))}
-                            </List>
-                          </Box>
-                        )}
-                      </Box>
+                      <List>
+                        {entityErrorsList.map((err, idx) => (
+                          <ListItem key={getErrorKey(err, idx)} sx={{ color: theme.palette.error.main, fontWeight: 500 }}
+                            secondaryAction={onFixError && (
+                              <Tooltip title="AI Fix Suggestion">
+                                <IconButton edge="end" color="primary" onClick={() => handleFixError(err)}>
+                                  <AutoFixHigh />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          >
+                            <ListItemIcon sx={{ color: theme.palette.error.main }}><Error fontSize="small" /></ListItemIcon>
+                            <ListItemText primary={err.message} />
+                          </ListItem>
+                        ))}
+                        {entityWarningsList.map((warn, idx) => (
+                          <ListItem key={getErrorKey(warn, idx)} sx={{ color: theme.palette.warning.main }}
+                            secondaryAction={onFixError && (
+                              <Tooltip title="AI Fix Suggestion">
+                                <IconButton edge="end" color="primary" onClick={() => handleFixError(warn)}>
+                                  <AutoFixHigh />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          >
+                            <ListItemIcon sx={{ color: theme.palette.warning.main }}><Warning fontSize="small" /></ListItemIcon>
+                            <ListItemText primary={warn.message} />
+                          </ListItem>
+                        ))}
+                      </List>
                     </AccordionDetails>
                   </Accordion>
                 );
               })}
-            </Box>
+            </Paper>
           )}
         </DialogContent>
 
