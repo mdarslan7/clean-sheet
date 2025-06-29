@@ -59,65 +59,36 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
   const [navigationMessage, setNavigationMessage] = useState<string | null>(null);
   const [validationTrigger, setValidationTrigger] = useState(0); // Force re-validation
   
-  // Track current DataGrid state
-  const [currentClients, setCurrentClients] = useState<Client[]>(clients);
-  const [currentWorkers, setCurrentWorkers] = useState<Worker[]>(workers);
-  const [currentTasks, setCurrentTasks] = useState<Task[]>(tasks);
-
-  // Log state changes
-  useEffect(() => {
-    console.log('Current clients state updated:', currentClients.length, currentClients);
-  }, [currentClients]);
-
-  useEffect(() => {
-    console.log('Current workers state updated:', currentWorkers.length, currentWorkers);
-  }, [currentWorkers]);
-
-  useEffect(() => {
-    console.log('Current tasks state updated:', currentTasks.length, currentTasks);
-  }, [currentTasks]);
-
   // Grid API references
   const clientGridRef = useRef<GridApi | null>(null);
   const workerGridRef = useRef<GridApi | null>(null);
   const taskGridRef = useRef<GridApi | null>(null);
 
-  // Update current state when props change (new data uploaded)
-  useEffect(() => {
-    console.log('Props changed - updating current state:', {
-      clients: clients.length,
-      workers: workers.length,
-      tasks: tasks.length
-    });
-    setCurrentClients(clients);
-    setCurrentWorkers(workers);
-    setCurrentTasks(tasks);
-  }, [clients, workers, tasks]);
-
   // Run validation on current state (including any edits)
   const validationErrors = useMemo(() => {
     console.log('Running validation on current state:', {
-      currentClients: currentClients.length,
-      currentWorkers: currentWorkers.length,
-      currentTasks: currentTasks.length,
+      clients: clients.length,
+      workers: workers.length,
+      tasks: tasks.length,
       validationTrigger
     });
     
     // Log sample data to see what we're validating
-    if (currentClients.length > 0) {
-      console.log('Sample client data for validation:', currentClients[0]);
+    if (clients.length > 0) {
+      console.log('Sample client data for validation:', clients[0]);
     }
-    if (currentWorkers.length > 0) {
-      console.log('Sample worker data for validation:', currentWorkers[0]);
+    if (workers.length > 0) {
+      console.log('Sample worker data for validation:', workers[0]);
     }
-    if (currentTasks.length > 0) {
-      console.log('Sample task data for validation:', currentTasks[0]);
+    if (tasks.length > 0) {
+      console.log('Sample task data for validation:', tasks[0]);
     }
     
-    const result = validateAllData(currentClients, currentWorkers, currentTasks);
+    const result = validateAllData(clients, workers, tasks);
     console.log('Validation result:', {
       errors: result.errors.length,
-      isValid: result.isValid
+      isValid: result.isValid,
+      errorsList: result.errors
     });
     
     // Log the first few errors to see what's failing
@@ -132,90 +103,36 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
     }
     
     return result.errors;
-  }, [currentClients, currentWorkers, currentTasks, validationTrigger]);
+  }, [clients, workers, tasks, validationTrigger]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
-  const handleCellEditCommit = (params: any, type: 'clients' | 'workers' | 'tasks') => {
-    const { id, field, value } = params;
-    
-    console.log('Cell edit committed:', { id, field, value, type });
-    
-    // Extract the original ID and index from the prefixed DataGrid ID
-    // Format: "client-CLIENT001-0" -> originalId: "CLIENT001", index: 0
-    let originalId = id;
-    let rowIndex = 0;
-    
-    if (id.startsWith('client-')) {
-      const parts = id.substring(7).split('-');
-      if (parts.length >= 2) {
-        originalId = parts[0];
-        rowIndex = parseInt(parts[1]) || 0;
-      } else {
-        originalId = parts[0];
-        rowIndex = 0;
-      }
-    } else if (id.startsWith('worker-')) {
-      const parts = id.substring(7).split('-');
-      if (parts.length >= 2) {
-        originalId = parts[0];
-        rowIndex = parseInt(parts[1]) || 0;
-      } else {
-        originalId = parts[0];
-        rowIndex = 0;
-      }
-    } else if (id.startsWith('task-')) {
-      const parts = id.substring(5).split('-');
-      if (parts.length >= 2) {
-        originalId = parts[0];
-        rowIndex = parseInt(parts[1]) || 0;
-      } else {
-        originalId = parts[0];
-        rowIndex = 0;
-      }
-    }
-    
-    console.log('Parsed edit info:', { originalId, rowIndex, field, value });
-    
-    // Update the data based on the entity type and index
+  const handleProcessRowUpdate = (newRow: any, oldRow: any, type: 'clients' | 'workers' | 'tasks') => {
     let updatedData: any[];
     switch (type) {
       case 'clients':
-        updatedData = [...currentClients];
-        if (updatedData[rowIndex]) {
-          console.log('Before client update:', updatedData[rowIndex]);
-          updatedData[rowIndex] = { ...updatedData[rowIndex], [field]: value };
-          console.log('After client update:', updatedData[rowIndex]);
-        }
+        updatedData = clients.map(row =>
+          row.ClientID === oldRow.ClientID ? { ...row, ...newRow } : row
+        );
         onDataUpdate('clients', updatedData);
-        setCurrentClients(updatedData);
-        console.log('Client state updated after edit:', updatedData);
         break;
       case 'workers':
-        updatedData = [...currentWorkers];
-        if (updatedData[rowIndex]) {
-          console.log('Before worker update:', updatedData[rowIndex]);
-          updatedData[rowIndex] = { ...updatedData[rowIndex], [field]: value };
-          console.log('After worker update:', updatedData[rowIndex]);
-        }
+        updatedData = workers.map(row =>
+          row.WorkerID === oldRow.WorkerID ? { ...row, ...newRow } : row
+        );
         onDataUpdate('workers', updatedData);
-        setCurrentWorkers(updatedData);
-        console.log('Worker state updated after edit:', updatedData);
         break;
       case 'tasks':
-        updatedData = [...currentTasks];
-        if (updatedData[rowIndex]) {
-          console.log('Before task update:', updatedData[rowIndex]);
-          updatedData[rowIndex] = { ...updatedData[rowIndex], [field]: value };
-          console.log('After task update:', updatedData[rowIndex]);
-        }
+        updatedData = tasks.map(row =>
+          row.TaskID === oldRow.TaskID ? { ...row, ...newRow } : row
+        );
         onDataUpdate('tasks', updatedData);
-        setCurrentTasks(updatedData);
-        console.log('Task state updated after edit:', updatedData);
         break;
     }
+    setValidationTrigger(prev => prev + 1);
+    return { ...oldRow, ...newRow };
   };
 
   const handleNavigateToError = (error: ValidationError) => {
@@ -261,9 +178,9 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
             }
           } else {
             // Try to find by searching through the data
-            const data = error.entityType === 'clients' ? currentClients 
-                       : error.entityType === 'workers' ? currentWorkers 
-                       : currentTasks;
+            const data = error.entityType === 'clients' ? clients 
+                       : error.entityType === 'workers' ? workers 
+                       : tasks;
             
             const matchingRow = data.find(row => {
               const idField = error.entityType === 'clients' ? 'ClientID' 
@@ -289,9 +206,9 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
               }
             } else {
               // Try to find by index if we can't find by ID
-              const data = error.entityType === 'clients' ? currentClients 
-                         : error.entityType === 'workers' ? currentWorkers 
-                         : currentTasks;
+              const data = error.entityType === 'clients' ? clients 
+                         : error.entityType === 'workers' ? workers 
+                         : tasks;
               
               // Find the row index by matching the original data
               const rowIndex = data.findIndex(row => {
@@ -341,26 +258,26 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
     let updatedData: any[];
     switch (entityType) {
       case 'clients':
-        updatedData = [...currentClients];
+        updatedData = [...clients];
         if (updatedData[rowIndex]) {
           updatedData[rowIndex] = { ...updatedData[rowIndex], [field]: newValue };
-          setCurrentClients(updatedData);
+          onDataUpdate('clients', updatedData);
           console.log('Client manually updated:', updatedData[rowIndex]);
         }
         break;
       case 'workers':
-        updatedData = [...currentWorkers];
+        updatedData = [...workers];
         if (updatedData[rowIndex]) {
           updatedData[rowIndex] = { ...updatedData[rowIndex], [field]: newValue };
-          setCurrentWorkers(updatedData);
+          onDataUpdate('workers', updatedData);
           console.log('Worker manually updated:', updatedData[rowIndex]);
         }
         break;
       case 'tasks':
-        updatedData = [...currentTasks];
+        updatedData = [...tasks];
         if (updatedData[rowIndex]) {
           updatedData[rowIndex] = { ...updatedData[rowIndex], [field]: newValue };
-          setCurrentTasks(updatedData);
+          onDataUpdate('tasks', updatedData);
           console.log('Task manually updated:', updatedData[rowIndex]);
         }
         break;
@@ -376,15 +293,15 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
     
     switch (error.entityType) {
       case 'clients':
-        data = currentClients;
+        data = clients;
         entityType = 'clients';
         break;
       case 'workers':
-        data = currentWorkers;
+        data = workers;
         entityType = 'workers';
         break;
       case 'tasks':
-        data = currentTasks;
+        data = tasks;
         entityType = 'tasks';
         break;
     }
@@ -407,19 +324,6 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
         
         console.log(`Applied AI fix: ${error.field} = ${suggestedValue}`);
         onDataUpdate(entityType, updatedData);
-        
-        // Update local state
-        switch (entityType) {
-          case 'clients':
-            setCurrentClients(updatedData);
-            break;
-          case 'workers':
-            setCurrentWorkers(updatedData);
-            break;
-          case 'tasks':
-            setCurrentTasks(updatedData);
-            break;
-        }
         
         // Trigger re-validation
         setValidationTrigger(prev => prev + 1);
@@ -489,22 +393,22 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
     return columns;
   };
 
-  const clientColumns = generateColumns(currentClients, 'clients');
-  const workerColumns = generateColumns(currentWorkers, 'workers');
-  const taskColumns = generateColumns(currentTasks, 'tasks');
+  const clientColumns = generateColumns(clients, 'clients');
+  const workerColumns = generateColumns(workers, 'workers');
+  const taskColumns = generateColumns(tasks, 'tasks');
 
   // Ensure each row has a unique ID for DataGrid
-  const clientsWithIds = currentClients.map((client, index) => ({
+  const clientsWithIds = clients.map((client, index) => ({
     ...client,
     id: client.ClientID ? `client-${client.ClientID}-${index}` : `client-${index}` // Ensure unique with index
   }));
 
-  const workersWithIds = currentWorkers.map((worker, index) => ({
+  const workersWithIds = workers.map((worker, index) => ({
     ...worker,
     id: worker.WorkerID ? `worker-${worker.WorkerID}-${index}` : `worker-${index}` // Ensure unique with index
   }));
 
-  const tasksWithIds = currentTasks.map((task, index) => ({
+  const tasksWithIds = tasks.map((task, index) => ({
     ...task,
     id: task.TaskID ? `task-${task.TaskID}-${index}` : `task-${index}` // Ensure unique with index
   }));
@@ -548,7 +452,7 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   Clients
-                  <Chip label={currentClients.length} size="small" color="primary" />
+                  <Chip label={clients.length} size="small" color="primary" />
                   {(() => {
                     const clientErrors = validationErrors.filter(e => e.entityType === 'clients');
                     const clientErrorCount = clientErrors.filter(e => e.severity === 'error').length;
@@ -567,7 +471,7 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   Workers
-                  <Chip label={currentWorkers.length} size="small" color="secondary" />
+                  <Chip label={workers.length} size="small" color="secondary" />
                   {(() => {
                     const workerErrors = validationErrors.filter(e => e.entityType === 'workers');
                     const workerErrorCount = workerErrors.filter(e => e.severity === 'error').length;
@@ -586,7 +490,7 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   Tasks
-                  <Chip label={currentTasks.length} size="small" color="success" />
+                  <Chip label={tasks.length} size="small" color="success" />
                   {(() => {
                     const taskErrors = validationErrors.filter(e => e.entityType === 'tasks');
                     const taskErrorCount = taskErrors.filter(e => e.severity === 'error').length;
@@ -606,7 +510,7 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
         
         <TabPanel value={tabValue} index={0}>
           <Box sx={{ height: 400, width: '100%' }}>
-            {currentClients.length > 0 ? (
+            {clients.length > 0 ? (
               <DataGrid
                 rows={clientsWithIds}
                 columns={clientColumns}
@@ -622,6 +526,7 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
                   clientGridRef.current = params.api;
                   console.log('Client grid API captured:', params.api);
                 }}
+                processRowUpdate={(newRow, oldRow) => handleProcessRowUpdate(newRow, oldRow, 'clients')}
                 sx={{
                   background: theme.palette.background.paper,
                   borderRadius: 2,
@@ -656,7 +561,7 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
         
         <TabPanel value={tabValue} index={1}>
           <Box sx={{ height: 400, width: '100%' }}>
-            {currentWorkers.length > 0 ? (
+            {workers.length > 0 ? (
               <DataGrid
                 rows={workersWithIds}
                 columns={workerColumns}
@@ -672,6 +577,7 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
                   workerGridRef.current = params.api;
                   console.log('Worker grid API captured:', params.api);
                 }}
+                processRowUpdate={(newRow, oldRow) => handleProcessRowUpdate(newRow, oldRow, 'workers')}
                 sx={{
                   background: theme.palette.background.paper,
                   borderRadius: 2,
@@ -706,7 +612,7 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
         
         <TabPanel value={tabValue} index={2}>
           <Box sx={{ height: 400, width: '100%' }}>
-            {currentTasks.length > 0 ? (
+            {tasks.length > 0 ? (
               <DataGrid
                 rows={tasksWithIds}
                 columns={taskColumns}
@@ -722,6 +628,7 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
                   taskGridRef.current = params.api;
                   console.log('Task grid API captured:', params.api);
                 }}
+                processRowUpdate={(newRow, oldRow) => handleProcessRowUpdate(newRow, oldRow, 'tasks')}
                 sx={{
                   background: theme.palette.background.paper,
                   borderRadius: 2,
@@ -762,9 +669,9 @@ export default function TablesSection({ clients, workers, tasks, onDataUpdate }:
         onNavigateToError={handleNavigateToError}
         onFixError={handleFixError}
         allData={{
-          clients: currentClients,
-          workers: currentWorkers,
-          tasks: currentTasks
+          clients,
+          workers,
+          tasks
         }}
       />
 

@@ -1,135 +1,91 @@
-# Clean Sheet - Data Management Application
+# Clean Sheet – AI-Powered Data Alchemist
 
-A modern web application built with Next.js, TypeScript, and Material-UI for managing and processing CSV/Excel files containing client, worker, and task data.
+A next-generation web application for taming spreadsheet chaos, powered by Next.js, TypeScript, Material-UI, and AI-driven data intelligence. Clean Sheet lets you upload, validate, edit, and export complex resource allocation data with no technical expertise required.
+
+---
 
 ## Features
 
-- **File Upload**: Drag & drop or click to upload `.xlsx`, `.xls`, and `.csv` files
-- **Automatic Entity Detection**: Automatically categorizes uploaded files as Clients, Workers, or Tasks based on column headers
-- **Interactive Data Tables**: View and edit data in MUI DataGrid with inline editing capabilities
-- **Data Validation**: Framework for implementing validation rules (expandable)
-- **Export Functionality**: Export data in Excel, CSV, or JSON formats
-- **Modern UI**: Clean, responsive interface with Material-UI components
+- **AI-Enabled File Upload & Parsing**
+  - Drag & drop or click to upload `.xlsx`, `.xls`, and `.csv` files for Clients, Workers, and Tasks.
+  - AI-powered parser automatically maps columns, even with misspelled headers or shuffled order.
+
+- **Automatic Entity Detection**
+  - Uploaded files are intelligently categorized as Clients, Workers, or Tasks.
+
+- **Interactive Data Grids**
+  - Modern, editable tables for each entity using MUI DataGrid.
+  - Inline editing with instant feedback and error highlighting.
+
+- **Comprehensive Data Validation**
+  - Real-time validation on upload and every edit.
+  - Errors are highlighted in the grid and summarized in a dedicated panel.
+  - **Validations include:**  
+    - Missing required columns  
+    - Duplicate IDs  
+    - Malformed lists (e.g., non-numeric slots)  
+    - Out-of-range values (e.g., PriorityLevel, Duration)  
+    - Broken JSON in attributes  
+    - Unknown references (e.g., missing TaskIDs)  
+    - Circular co-run groups  
+    - Conflicting rules  
+    - Overloaded workers  
+    - Phase-slot saturation  
+    - Skill-coverage matrix  
+    - Max-concurrency feasibility  
+  - **AI-based Validator:** Detects unusual patterns and suggests additional checks.
+
+- **AI-Driven Error Correction**
+  - The system suggests and can auto-fix common data issues with a single click.
+
+- **Rule Engine & Recommendations**
+  - Intuitive UI for defining business rules (co-run, slot-restriction, load-limit, phase-window, pattern-match, precedence override).
+  - The app suggests rules using AI based on detected data patterns.
+  - All rules are bundled into a downloadable `rules.json` file.
+
+- **Prioritization & Weights**
+  - Assign weights to allocation criteria using sliders or numeric inputs.
+  - Preset profiles (e.g., "Maximize Fulfillment", "Fair Distribution").
+
+- **Natural Language Features**
+  - (In progress) Search and interact with your data using plain English queries.
+  - (Planned) Natural language to rules and data modification.
+
+- **Export Functionality**
+  - Download cleaned, validated data for Clients, Workers, and Tasks.
+  - Export all user-defined rules and prioritization settings as `rules.json`.
+  - Ready for integration with downstream allocation tools.
+
+- **Modern, Accessible UI**
+  - Custom Material UI theme, responsive layouts, and a focus on non-technical users.
+
+---
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS + Material-UI
-- **File Processing**: SheetJS (xlsx)
-- **Data Grid**: @mui/x-data-grid
-- **File Download**: file-saver
+- **Frontend:** Next.js 15 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS + Material-UI
+- **Data Grid:** @mui/x-data-grid
+- **File Processing:** SheetJS (xlsx)
+- **AI/Heuristics:** Google Gemini API, Custom TypeScript logic for parsing, validation, and rule recommendations
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd clean-sheet
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Run the development server:
-```bash
-npm run dev
-```
-
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+---
 
 ## Usage
 
-### Uploading Files
+1. **Upload** your data files in any order.
+2. **Review and edit** your data in the interactive tables.
+3. **Fix errors** using real-time validation and AI-powered suggestions.
+4. **Define rules** using the intuitive UI or accept AI recommendations.
+5. **Set priorities** for allocation using sliders or presets.
+6. **Export** your cleaned data and rules for downstream use.
 
-1. Navigate to the **Upload** section
-2. Drag and drop files or click to select files
-3. Supported formats: `.xlsx`, `.xls`, `.csv`
-4. Files are automatically categorized based on column headers:
-   - Files with `ClientID` column → Clients
-   - Files with `WorkerID` column → Workers  
-   - Files with `TaskID` column → Tasks
-
-### Expected Data Schemas
-
-#### Clients
-- Required: `ClientID`, `Name`
-- Optional: `Email`, `Phone`, `Address`
-
-#### Workers
-- Required: `WorkerID`, `Name`
-- Optional: `Email`, `Phone`, `Position`, `Department`
-
-#### Tasks
-- Required: `TaskID`, `Title`
-- Optional: `Description`, `ClientID`, `WorkerID`, `Status`, `Priority`, `DueDate`
-
-### Editing Data
-
-1. Go to the **Tables** section
-2. Use the tabs to switch between Clients, Workers, and Tasks
-3. Click on any cell to edit inline
-4. Changes are automatically saved to the application state
-
-### Exporting Data
-
-1. Navigate to the **Export** section
-2. Select the desired format (Excel or CSV)
-3. Choose which datasets to export
-4. Click "Export Selected Data" to download
-
-## Project Structure
-
-```
-src/
-├── app/                 # Next.js app router
-│   ├── layout.tsx      # Root layout with MUI theme
-│   ├── page.tsx        # Main application page
-│   └── globals.css     # Global styles
-├── components/         # React components
-│   ├── UploadSection.tsx
-│   ├── TablesSection.tsx
-│   ├── RulesSection.tsx
-│   └── ExportSection.tsx
-├── types/             # TypeScript type definitions
-│   └── index.ts
-└── utils/             # Utility functions
-    └── fileParser.ts
-```
+---
 
 ## Development
 
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-
-### Adding New Features
-
-1. **Validation Rules**: Extend the `RulesSection` component to implement actual validation logic
-2. **Cell Styling**: Use MUI DataGrid's `cellClassName` prop to style cells based on validation results
-3. **Data Persistence**: Add backend integration or local storage for data persistence
-4. **Advanced Filtering**: Implement search and filter functionality in the data tables
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
+- `npm run dev` – Start development server
+- `npm run build` – Build for production
+- `npm run start` – Start production server
+- `npm run lint` – Run ESLint
